@@ -1,4 +1,5 @@
 ﻿using System.ComponentModel.Composition;
+using System.IO;
 using Microsoft.VisualStudio.Editor;
 using Microsoft.VisualStudio.OLE.Interop;
 using Microsoft.VisualStudio.Text;
@@ -10,8 +11,7 @@ using Microsoft.VisualStudio.Utilities;
 namespace JavaScriptPrettier
 {
     [Export(typeof(IVsTextViewCreationListener))]
-    [ContentType("TypeScript")]
-    [ContentType("JavaScript")]
+    [ContentType("Text")]
     [TextViewRole(PredefinedTextViewRoles.PrimaryDocument)]
     internal sealed class CommandRegistration : IVsTextViewCreationListener
     {
@@ -28,7 +28,7 @@ namespace JavaScriptPrettier
         {
             IWpfTextView view = AdaptersFactory.GetWpfTextView(textViewAdapter);
 
-            if (!DocumentService.TryGetTextDocument(view.TextBuffer, out ITextDocument doc))
+            if (!TryGetPrettierTextDocument(view, out ITextDocument doc))
                 return;
 
             ITextBufferUndoManager undoManager = UndoProvider.GetTextBufferUndoManager(view.TextBuffer);
@@ -48,6 +48,23 @@ namespace JavaScriptPrettier
         {
             textViewAdapter.AddCommandFilter(command, out IOleCommandTarget next);
             command.Next = next;
+        }
+
+        private bool TryGetPrettierTextDocument(IWpfTextView view, out ITextDocument document)
+        {
+            document = null;
+
+            if (DocumentService.TryGetTextDocument(view.TextDataModel.DocumentBuffer, out ITextDocument doc))
+            {
+                var extension = Path.GetExtension(doc.FilePath);
+                if (extension == ".vue" || extension == ".js" || extension == ".ts")
+                {
+                    document = doc;
+                    return true;
+                }
+            }
+
+            return false;
         }
     }
 }
