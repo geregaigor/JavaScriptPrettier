@@ -57,7 +57,10 @@ namespace JavaScriptPrettier
             if (DocumentService.TryGetTextDocument(view.TextDataModel.DocumentBuffer, out ITextDocument doc))
             {
                 var extension = Path.GetExtension(doc.FilePath);
-                if (extension == ".vue" || extension == ".js" || extension == ".ts")
+                if (extension == ".vue"
+                    || extension == ".js"
+                    || extension == ".ts"
+                    || extension == ".tsx")
                 {
                     document = doc;
                     return true;
